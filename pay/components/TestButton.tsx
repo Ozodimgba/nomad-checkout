@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { createTransfer } from "@/utils/createTransfer";
+import { createTransfer } from "@solana/pay";
 import BigNumber from "bignumber.js";
 import { PublicKey } from "@solana/web3.js";
 
@@ -16,9 +16,9 @@ export default function PayButton({ recipientKey, amount, name }: InputProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const transferUSDC = async () => {
-    const recipient = new PublicKey('HoMSres2Bb8EojvfmXTSdsSWwYHHvG39qqGWEWA34Uzj');
+    const recipient = new PublicKey(recipientKey);
     console.log(recipient)
-    if (!publicKey) return;
+    if (!publicKey || recipient) return;
 
     
     const splToken = new PublicKey("4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU");

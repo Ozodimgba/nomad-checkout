@@ -60,7 +60,7 @@ export default function Pay() {
         <input placeholder="0" type="number" onChange={(e) => setAmount(parseInt(e?.target.value))}  className="min-w-full text-center font-semibold text-[#09342a] text-[8rem] border-[#09342A] py-3 px-3 focus:outline-none" />
       </div>
       <div className="w-full flex gap-4 px-8 justify-center">
-        <PayButton receipient="HoMSres2Bb8EojvfmXTSdsSWwYHHvG39qqGWEWA34Uzj" name={name} amountProp={amount} />
+        <PayButton recipientKey="HoMSres2Bb8EojvfmXTSdsSWwYHHvG39qqGWEWA34Uzj" name={name} amount={amount} />
       </div>
       <div className="flex justify-center mt-8">
         <button className="text-[#09342a] text-xl font-main ">Issues with your transaction? Contact Us</button>
