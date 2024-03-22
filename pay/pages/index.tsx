@@ -54,13 +54,13 @@ export default function Pay() {
         <h2 className="text-[#09342a] font-main font-bold text-4xl">Welcome, Nomad!</h2>
       </div>
         <div className="flex mt-2 justify-center">
-        <p className="text-[#09342a] font-main ">You&apos;re about to send money to <span className="font-bold">{name}</span></p>
+        <p className="text-[#09342a] text-center font-main ">You&apos;re about to send money to <span className="font-bold">{name}</span></p>
       </div>
       <div className=" flex mt-8 justify-center my-1">
         <input placeholder="0" type="number" onChange={(e) => setAmount(parseInt(e?.target.value))}  className="min-w-full text-center font-semibold text-[#09342a] text-[8rem] border-[#09342A] py-3 px-3 focus:outline-none" />
       </div>
-      <div className="w-full flex gap-4 justify-center">
-        <PayButton receipient={receipient} name={name} amountProp={amount} />
+      <div className="w-full flex gap-4 px-8 justify-center">
+        <PayButton receipient="HoMSres2Bb8EojvfmXTSdsSWwYHHvG39qqGWEWA34Uzj" name={name} amountProp={amount} />
       </div>
       <div className="flex justify-center mt-8">
         <button className="text-[#09342a] text-xl font-main ">Issues with your transaction? Contact Us</button>

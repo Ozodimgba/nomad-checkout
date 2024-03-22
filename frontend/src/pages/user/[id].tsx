@@ -23,7 +23,7 @@ export default function User({ data }: any) {
 
   useEffect(() => {
     const qr = createQR(
-        'https://phantom.app/ul/browse/https%3A%2F%2Fnomad-checkout.vercel.app%2F?ref=https%3A%2F%2Fnomad-checkout.vercel.app%2F', // The Solana Pay URL
+        `https://phantom.app/ul/browse/https%3A%2F%2Fnomad-checkout.vercel.app%2F%3Faddress%3DHoMSres2Bb8EojvfmXTSdsSWwYHHvG39qqGWEWA34Uzj?ref=https%3A%2F%2Fnomad-checkout.vercel.app%2F`, // The Solana Pay URL
         350, // The size of the QR code
         "#09342a" // The background color of the QR code
       );
@@ -35,7 +35,7 @@ export default function User({ data }: any) {
       }
   })
 
-  console.log('client: ' + JSON.stringify(data.user))
+  console.log('client: ' + JSON.stringify(data.user.nomadVault))
 
     const {
         register,
