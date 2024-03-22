@@ -129,7 +129,7 @@ export class AppService {
     const { data, error } = await db.from('nomad_merchants').select('*');
 
     if (data) {
-      return data.length;
+      return data.length + 1;
     } else if (error) {
       return error;
     }
@@ -145,6 +145,14 @@ export class AppService {
     });
     return vaultPda;
   }
+
+  async generateNewVault(): Promise<string> {
+    const id = await this.getNextUserId();
+
+    const nomadVault = this.getVault(id as unknown as number).toBase58();
+    return nomadVault;
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async register(data: MerchantData): Promise<boolean> {
     // brings email and bank acount. Stores email-key, bank account

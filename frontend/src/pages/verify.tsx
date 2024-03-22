@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from 'next/router'
 import 'react-international-phone/style.css'
 import OTPForm from "@/components/OtpForm";
+import { decrypt } from "@/lib";
 
 type Inputs = {
     email: string
@@ -15,15 +16,12 @@ type Inputs = {
 export default function CreateAccount() {
   const [phone, setPhone] = useState('');
 
-  const router = useRouter()
+  const router = useRouter();
+  const { email } = router.query;
 
-    const {
-        register,
-        handleSubmit,
-        watch,
-        formState: { errors },
-      } = useForm<Inputs>()
-      const onSubmit: SubmitHandler<Inputs> = (data) => console.log(Object.assign(data, {phone: phone}));
+  const paramEmail = email as unknown as string;
+
+  console.log(email)
 
   return (
     <main
@@ -40,14 +38,41 @@ export default function CreateAccount() {
         <p className="text-[#09342a] font-main">We just sent a 6 digit code to your email</p>
       </div>
       <div className="w-full flex mt-8 text-[#09342a] justify-center">
-      <OTPForm />
+      <OTPForm email={paramEmail} router={router} />
       </div>
-      
-      <div className="flex justify-center mt-8">
+      <div className="w-full mt-5 flex pb-8 pt-3 gap-4 justify-center">
+      <button type="submit" className="bg-[#09342A] min-w-[30rem] px-5 text-xl py-3 font-mono transition-transform transform-gpu hover:scale-105">DIDN&apos;T RECEIVE A CODE? RESEND</button>
+      </div>
+      {/* <div className="flex justify-center mt-8">
         <button className="text-[#09342a] text-xl font-main ">Didnt receive a code? Resend.</button>
-      </div>
+      </div> */}
     </div>
     <div className="flex items-center gap-3 mt-5"> <span className="text-2xl text-[#FFF3D5]">Olumide Funitures received</span> <img src="ngn.svg" className="h-[30px] w-[30px]" /> <span className="text-2xl text-[#FFF3D5]">₦2000 from USDC</span></div>
     </main>
   );
+}
+
+export async function getServerSideProps(context: any) {
+  
+  // Check if user has session cookies
+  const { req, res } = context;
+  const sessionCookie = req.cookies['myCookie'];
+  const allCookies = req.headers.cookie
+ 
+
+
+  if (sessionCookie) {
+    // Redirect the user to the login page or any other page
+    const data = await decrypt(sessionCookie);
+    res.writeHead(302, { Location: `/user/${data.user.kycInfo[0].fullName}` });
+    res.end();
+    return { props: { data } }; // Return empty props since the page will not be rendered
+  }
+
+  // Your logic for fetching data
+  
+
+  return {
+    props: { },
+  };
 }

@@ -4,6 +4,7 @@ import { PhoneInput } from 'react-international-phone';
 import { useState, useEffect } from "react";
 import { useRouter } from 'next/router'
 import 'react-international-phone/style.css'
+import axios from "axios";
 
 type Inputs = {
     email: string
@@ -22,11 +23,18 @@ export default function CreateAccount() {
         watch,
         formState: { errors },
       } = useForm<Inputs>()
-      const onSubmit: SubmitHandler<Inputs> = (data) => console.log(Object.assign(data, {phone: phone}));
+
+      const onSubmit: SubmitHandler<Inputs> = (data) => {
+        const payload = Object.assign(data, {phone: phone});
+        axios.post('api/registerUser', payload)
+             .then(response => {
+                  console.log('Response:', response.data);
+  })
+      };
 
   return (
     <main
-      className={`flex min-h-screen font-main flex-col text-white bg-[#101010] items-center  px-40`}
+      className={`flex min-h-screen font-main flex-col text-white bg-[#101010] items-center  px-0`}
     >
       <div>
         <img src="icon.svg" className="w-[150px]" />
@@ -48,7 +56,7 @@ export default function CreateAccount() {
         {errors.fullName && <span className="text-red-500">Full name is required</span>}
       </div>
       <div className=" flex mt-2 justify-center">
-      <div className="min-w-[37rem] text-[#09342a] text-lg border-[2px] border-[#09342A] py-2">
+      <div className="min-w-[37rem] text-[#09342a] bg-white text-lg border-[2px] border-[#09342A] py-2">
        <PhoneInput
         defaultCountry="ng"
         style={{width: '36.2rem', paddingLeft: '0.75rem'}}
@@ -74,3 +82,4 @@ export default function CreateAccount() {
     </main>
   );
 }
+

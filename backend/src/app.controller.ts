@@ -38,6 +38,11 @@ export class AppController {
   @Post('off-ramp')
   offRamp(): any {}
 
+  @Get('generateNewVault')
+  generateNewVault(): any {
+    return this.appService.generateNewVault();
+  }
+
   @Post('txn')
   transfers(@Body() body: any): any {
     //receiver

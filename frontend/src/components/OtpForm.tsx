@@ -1,6 +1,13 @@
+import axios from 'axios';
+import { NextRouter } from 'next/router';
 import React, { useState, useRef, ChangeEvent } from 'react';
 
-const OTPForm: React.FC = () => {
+interface FormProps {
+  email: string;
+  router: NextRouter
+}
+
+const OTPForm: React.FC<FormProps> = ({ email, router }) => {
   const [otp, setOTP] = useState<string[]>(['', '', '', '', '', '']);
   const otpInputs = useRef<HTMLInputElement[]>([]);
 
@@ -17,8 +24,20 @@ const OTPForm: React.FC = () => {
   };
 
   React.useEffect(() => {
-    console.log(otp);
-  },[otp])
+    if (otp.every(code => code !== '')) {
+      const otpCode = otp.join(''); // Log all values as a single string
+
+      const data = {
+        email,
+        otpCode
+      }
+      axios.post('api/login', data).then(res => {
+        if(res.data.session){
+          router.reload()
+        }
+      })
+    }
+  },[otp, email])
 
   const handleKeyDown = (index: number, event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Backspace') {
@@ -35,6 +54,7 @@ const OTPForm: React.FC = () => {
 
   return (
     <div className='flex gap-3 min-h-[60px] bg-white'>
+      
       {otp.map((value, index) => (
         <div key={index} className='w-[50px] flex justify-center items-center border-[2px] border-green-950 max-h-[50px]'>
         <input

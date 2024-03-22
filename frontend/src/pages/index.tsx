@@ -1,13 +1,39 @@
 import Image from "next/image";
 import { DM_Sans } from "next/font/google";
 import { Router, useRouter } from "next/router";
+import { decrypt } from '@/lib'
 import Link from "next/link";
+import { SubmitHandler, useForm } from "react-hook-form";
+import axios from "axios";
 
 const dm = DM_Sans({ subsets: ["latin"] });
 
+type Inputs = {
+  email: string
+}
+
+
 export default function Home() {
 
-  const router = useRouter()
+  const router = useRouter();
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<Inputs>();
+
+  const onSubmit: SubmitHandler<Inputs> = (data) => {
+    axios.post('api/sendOTP', data)
+         .then(response => {
+              console.log('Response:', response.data);
+              
+     })
+     router.push(`./verify?email=${data.email}`)
+  };
+
+
 
   return (
     <main
@@ -20,23 +46,23 @@ export default function Home() {
       <div className="flex justify-center">
         <h2 className="text-[#09342a] font-main font-bold text-4xl">Bypass Exchanges, Get Cash Directly!</h2>
       </div>
+      <form onSubmit={handleSubmit(onSubmit)}>
       <div className="flex mt-2 justify-center">
         <p className="text-[#09342a] font-main ">Pay merchants in local african curencies straight from your solana wallet</p>
       </div>
       <div className=" flex mt-8 justify-center my-1">
-        <input placeholder="Enter email" className="min-w-[37rem] text-[#09342a] text-lg border-[2px] border-[#09342A] py-3 px-3" />
+        <input {...register("email", { required: true})}  placeholder="Enter email" className="min-w-[37rem] text-[#09342a] text-lg border-[2px] border-[#09342A] py-3 px-3" />
       </div>
       <div className="w-full flex gap-4 justify-center">
       <Link href={'./Signup'}>
       <button className="bg-[#09342A] min-w-[18rem] px-5 py-3 font-mono transition-transform transform-gpu hover:scale-105"> CREATE ACCOUNT</button>
       </Link>
-      <Link href={'./Login'}>
-     <button onClick={() => router.push('./createAccount')} className="relative text-[#09342A] font-mono min-w-[18rem] px-5 py-3 transition-transform transform-gpu hover:scale-105">
+     <button type="submit" className="relative text-[#09342A] font-mono min-w-[18rem] px-5 py-3 transition-transform transform-gpu hover:scale-105">
      <span className="absolute inset-0 border-[2px] border-[#09342A]"></span>
      LOGIN
     </button>
-    </Link>
       </div>
+      </form>
       <div className="flex justify-center mt-8">
         <button className="text-[#09342a] text-xl font-main ">Forgot password?</button>
       </div>
@@ -45,3 +71,4 @@ export default function Home() {
     </main>
   );
 }
+

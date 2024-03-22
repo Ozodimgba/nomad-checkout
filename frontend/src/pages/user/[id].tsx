@@ -6,6 +6,7 @@ import { useRouter } from 'next/router'
 import 'react-international-phone/style.css'
 import OTPForm from "@/components/OtpForm";
 import { createQR } from "../../utils/createQr";
+import { decrypt } from "@/lib";
 
 type Inputs = {
     email: string
@@ -13,7 +14,7 @@ type Inputs = {
     dob: string;
 }
 
-export default function User() {
+export default function User({ data }: any) {
   const [phone, setPhone] = useState('');
   const [hasBank, setHasBank] = useState<boolean>(true)
   const qrRef = useRef<HTMLDivElement>(null)
@@ -22,7 +23,7 @@ export default function User() {
 
   useEffect(() => {
     const qr = createQR(
-        'https://phantom.app/ul/browse/https%3A%2F%2Fmagiceden.io%2Fitem-details%2F8yjN8iRuoiYiKW487cnW9vn6mLBR5E8aCNKsBRmTP9vN?ref=https%3A%2F%2Fmagiceden.io', // The Solana Pay URL
+        'https://phantom.app/ul/browse/https%3A%2F%2Fresend.com%2Fdocs%2Fintroduction&ref=https%3A%2F%2Fresend.com', // The Solana Pay URL
         350, // The size of the QR code
         "#09342a" // The background color of the QR code
       );
@@ -34,7 +35,7 @@ export default function User() {
       }
   })
 
-  
+  console.log('client: ' + JSON.stringify(data.user))
 
     const {
         register,
@@ -53,16 +54,16 @@ export default function User() {
       <div className="flex justify-between text-[#09342a] px-6">
         <h2 className="font-main font-bold text-4xl">nomad</h2>
         <div className="flex flex-col items-end">
-            <h4>idasiadiachi@gmail.com</h4>
-            <h4 className="text-md ">IFE ASIADIACHI</h4>
+            <h4>{data?.user.email}</h4>
+            <h4 className="text-md ">{data?.user.kycInfo[0].fullName?.toUpperCase()}</h4>
         </div>
       </div>
-     { hasBank? <>
+     { data?.user.bankingInfo !== null ? <>
         <div className="flex mt-6 px-6 justify-center">
         <div className="h-[5rem] flex justify-between w-full bg-[#09342a]">
          <div className="p-4">
-            <h3 className="text-xl ">PALMPAY</h3>
-            <h3 className="text-md">3146816045</h3>
+            <h3 className="text-xl ">{data?.user.bankingInfo.bank_name}</h3>
+            <h3 className="text-md">{data?.user.bankingInfo.account_number}</h3>
         </div>
         <div className="flex items-center p-4">
             <button className="bg-white text-[#09342a] px-3 py-2 font-mono">GENERATE ONE TIME QR PAYMENT</button>
@@ -72,13 +73,21 @@ export default function User() {
       <div className="text-[#09342a] mt-1 px-6 flex justify-end">
         <button className="font-mono text-sm">EDIT BANK INFO</button>
       </div>
-     </> : null}
-      
-     {qrRef && 
+     </> : <>
+        <div className="w-full flex py-8 justify-center">
+        <button onClick={() => router.replace('/user/AddBankAccount')} className="bg-[#09342a] text-white px-3 py-2 font-mono">+ ADD BANK ACCOUNT</button>
+        </div>
+     </>}
+
+     { data?.user.bankingInfo !== null ? <>
+      {qrRef && 
                     <div className='py-4 flex justify-center'>
                         <div className="rounded-[2rem]" ref={qrRef} />
                     </div>
                 }
+     </> : null}
+      
+     
 
       <div className="flex justify-center mt-8">
         <button className="text-[#09342a] text-xl font-main ">Didnt receive a code? Resend.</button>
@@ -87,4 +96,30 @@ export default function User() {
     <div className="flex items-center gap-3 mt-5"> <span className="text-2xl text-[#FFF3D5]">Olumide Funitures received</span> <img src="../ngn.svg" className="h-[30px] w-[30px]" /> <span className="text-2xl text-[#FFF3D5]">₦2000 from USDC</span></div>
     </main>
   );
+}
+
+export async function getServerSideProps(context: any) {
+  
+  // Check if user has session cookies
+  const { req, res } = context;
+  const sessionCookie = req.cookies['myCookie'];
+  const allCookies = req.headers.cookie
+  console.log(await decrypt(sessionCookie))
+  const dd = await decrypt(sessionCookie)
+  console.log(dd.user.kycInfo[0].fullName)
+
+
+  if (!sessionCookie) {
+    // Redirect the user to the login page or any other page
+    res.writeHead(302, { Location: '/Signup' });
+    res.end();
+    return { props: {} }; // Return empty props since the page will not be rendered
+  }
+
+  // Your logic for fetching data
+  const data = await decrypt(sessionCookie);
+
+  return {
+    props: { data },
+  };
 }
