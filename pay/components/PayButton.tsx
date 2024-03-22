@@ -18,9 +18,10 @@ import BigNumber from "bignumber.js";
 interface InputProps {
   receipient: string;
   amountProp: number;
+  name: string;
 }
 
-export default function PayButton({ receipient, amountProp}: InputProps) {
+export default function PayButton({ receipient, amountProp, name}: InputProps) {
   const { publicKey, sendTransaction, wallet } = useWallet();
   const { connection } = useConnection();
   const [isLoading, setIsLoading] = useState(false);
@@ -47,7 +48,7 @@ export default function PayButton({ receipient, amountProp}: InputProps) {
 
   return (
     <button className="bg-[#09342A] min-w-[18rem] px-5 py-3 font-mono transition-transform transform-gpu hover:scale-105" onClick={transferUSDC} disabled={!publicKey}>
-    Ok I agree to pay {amountProp} USDC to Receipt
+    Ok I agree to pay {amountProp} USDC to {name}
     </button>
   );
 }
