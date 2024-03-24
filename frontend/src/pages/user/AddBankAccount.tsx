@@ -6,9 +6,7 @@ import Link from "next/link";
 import { SubmitHandler, useForm } from "react-hook-form";
 import axios from "axios";
 import { useEffect } from "react";
-import { banks } from "./banks";
 import Select from 'react-select';
-import * as stringComparison from 'string-comparison';
 import React from "react";
 
 const dm = DM_Sans({ subsets: ["latin"] });
