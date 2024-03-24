@@ -93,7 +93,7 @@ export default function AddBank({session}: any) {
       bankInfo,
     }
     axios.post(`https://3000-ozodimgba-nomadcheckout-ofv3uqpm6fa.ws-eu110.gitpod.io/api/updateBankInfo`, data, {})
-     .then(res => router.replace(`/${email}`))
+     .then(res => router.replace(`/user/${email}`))
   }
 
 

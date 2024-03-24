@@ -5,6 +5,8 @@ import { decrypt } from '@/lib'
 import Link from "next/link";
 import { SubmitHandler, useForm } from "react-hook-form";
 import axios from "axios";
+import Loader from "@/components/Loader";
+import React from "react";
 
 const dm = DM_Sans({ subsets: ["latin"] });
 
@@ -12,10 +14,16 @@ type Inputs = {
   email: string
 }
 
+interface LoadingStates {
+  [buttonId: string]: boolean; 
+}
+
 
 export default function Home() {
 
   const router = useRouter();
+  const [loadingStates, setLoadingStates] = React.useState<LoadingStates>({ });
+
 
   const {
     register,
@@ -55,9 +63,9 @@ export default function Home() {
       </div>
       <div className="w-full flex gap-4 justify-center">
       <Link href={'./Signup'}>
-      <button className="bg-[#09342A] min-w-[18rem] px-5 py-3 font-mono transition-transform transform-gpu hover:scale-105"> CREATE ACCOUNT</button>
+      <button className="bg-[#09342A] min-w-[18rem] flex justify-center px-5 py-3 font-mono transition-transform transform-gpu hover:scale-105">CREATE ACCOUNT</button>
       </Link>
-     <button type="submit" className="relative text-[#09342A] font-mono min-w-[18rem] px-5 py-3 transition-transform transform-gpu hover:scale-105">
+     <button type="submit" disabled className="relative text-[#09342A] font-mono min-w-[18rem] px-5 py-3 transition-transform transform-gpu hover:scale-105">
      <span className="absolute inset-0 border-[2px] border-[#09342A]"></span>
      LOGIN
     </button>

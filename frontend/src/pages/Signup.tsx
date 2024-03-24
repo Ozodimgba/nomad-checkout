@@ -5,6 +5,9 @@ import { useState, useEffect } from "react";
 import { useRouter } from 'next/router'
 import 'react-international-phone/style.css'
 import axios from "axios";
+import Loader from "@/components/Loader";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 type Inputs = {
     email: string
@@ -12,8 +15,15 @@ type Inputs = {
     dob: string;
 }
 
+interface LoadingStates {
+  [buttonId: string]: boolean; 
+}
+
 export default function CreateAccount() {
   const [phone, setPhone] = useState('');
+  const [loadingStates, setLoadingStates] = useState<LoadingStates>({ 
+    signUp: false,
+  });
 
   const router = useRouter()
 
@@ -25,16 +35,66 @@ export default function CreateAccount() {
       } = useForm<Inputs>()
 
       const onSubmit: SubmitHandler<Inputs> = (data) => {
+        setLoadingStates((prevState) => ({ ...prevState, signUp: true }));
         const payload = Object.assign(data, {phone: phone});
         axios.post('api/registerUser', payload)
-             .then(response => {
-                  console.log('Response:', response.data);
+  .then(response => {
+    console.log('Response:', response.data);
+    if (response.status >= 200 && response.status < 300) {
+      // Success handling
+      const notify = () => toast("Your account has been created. We sent you an email!", {
+        style: {
+          background: "#09342a",
+          color: "white",
+          fontSize: "1rem",
+          borderRadius: 0
+        },
+        progressStyle: {
+          background: "white",
+          height: "4px"
+        }
+      });
+      notify();
+    } else {
+      // Server returned an error status
+      const notify = () => toast("An error occurred while creating your account", {
+        style: {
+          background: "#ac0816",
+          color: "white",
+          fontSize: "1rem",
+          borderRadius: 0
+        },
+        progressStyle: {
+          background: "white",
+          height: "4px"
+        }
+      });
+      notify();
+    }
   })
+  .catch(error => {
+    // Axios or network error occurred
+    console.error('Error:', error.message);
+    const notify = () => toast("An error occurred while creating your account", {
+      style: {
+        background: "#ac0816",
+        color: "white",
+        fontSize: "1rem",
+        borderRadius: 0
+      },
+      progressStyle: {
+        background: "white",
+        height: "4px"
+      }
+    });
+    notify();
+  }).finally(() => setLoadingStates((prevState) => ({ ...prevState, signUp: false })))
+        
       };
 
   return (
     <main
-      className={`flex min-h-screen font-main flex-col text-white bg-[#101010] items-center  px-0`}
+      className={`flex min-h-screen font-main flex-col text-white bg-[#101010] items-center  px-40`}
     >
       <div>
         <img src="icon.svg" className="w-[150px]" />
@@ -70,10 +130,10 @@ export default function CreateAccount() {
         <input {...register("dob")} type="date" id="datePicker" className="min-w-[37rem] text-[#09342a] text-lg border-[2px] border-[#09342A] py-3 px-3 focus:outline-none" />
       </div>
       <div className="w-full mt-3 flex gap-4 justify-center">
-      <button type="submit" className="bg-[#09342A] text-white min-w-[37rem] px-5 py-3 font-mono transition-transform transform-gpu hover:scale-105"> CREATE ACCOUNT</button>
+      <button type="submit" className="bg-[#09342A] text-white min-w-[37rem] px-5 py-3 flex justify-center font-mono transition-transform transform-gpu hover:scale-105"> {loadingStates.signUp? <Loader className="h-6" />: 'CREATE ACCOUNT'} </button>
       </div>
       </form>
-      
+      <ToastContainer />
       <div className="flex justify-center mt-8">
         <button onClick={() => router.push('./')} className="text-[#09342a] text-xl font-main ">Already have account? Click here to Login</button>
       </div>

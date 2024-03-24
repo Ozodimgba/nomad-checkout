@@ -7,6 +7,7 @@ import 'react-international-phone/style.css'
 import OTPForm from "@/components/OtpForm";
 import { createQR } from "../../utils/createQr";
 import { decrypt } from "@/lib";
+import { Connection, clusterApiUrl, PublicKey, AccountInfo } from "@solana/web3.js";
 
 type Inputs = {
     email: string
@@ -17,7 +18,10 @@ type Inputs = {
 export default function User({ data }: any) {
   const [phone, setPhone] = useState('');
   const [hasBank, setHasBank] = useState<boolean>(true)
+  const [isActivated, setIsActivated] = useState<boolean>(false)
   const qrRef = useRef<HTMLDivElement>(null)
+
+  const connection = new Connection(clusterApiUrl('devnet'))
 
   const router = useRouter()
 
@@ -35,15 +39,33 @@ export default function User({ data }: any) {
       }
   })
 
+  useEffect(() => {
+    (async () => {
+      try {
+        const wallet = data.user.nomadVault as unknown as string;
+        const address = new PublicKey(wallet);
+        const recipientInfo = await connection.getAccountInfo(address);
+        
+        if (!recipientInfo) {
+          setIsActivated(false);
+          console.log("Recipient info not found:", recipientInfo);
+        } else {
+          setIsActivated(true);
+          console.log("Recipient info found:", recipientInfo);
+        }
+      } catch (error) {
+        console.error("Error fetching recipient info:", error);
+        // Handle the error, display a message, or set a state indicating an error occurred
+        setIsActivated(false); // For example, set a state to indicate an error occurred
+        console.log("Failed to fetch recipient info"); // Display an error message to the user
+      }
+    })();
+  }, [data.user.nomadVault, connection]);
+
   console.log('client: ' + JSON.stringify(data.user.nomadVault))
 
-    const {
-        register,
-        handleSubmit,
-        watch,
-        formState: { errors },
-      } = useForm<Inputs>()
-      const onSubmit: SubmitHandler<Inputs> = (data) => console.log(Object.assign(data, {phone: phone}));
+  
+
 
   return (
     <main
@@ -66,12 +88,12 @@ export default function User({ data }: any) {
             <h3 className="text-md">{data?.user.bankingInfo.account_number}</h3>
         </div>
         <div className="flex items-center p-4">
-            <button className="bg-white text-[#09342a] px-3 py-2 font-mono">GENERATE ONE TIME QR PAYMENT</button>
+            <button onClick={() => router.push('./generateQR')} className="bg-white text-[#09342a] px-3 py-2 font-mono">GENERATE ONE TIME QR PAYMENT</button>
         </div>
         </div>
       </div>
       <div className="text-[#09342a] mt-1 px-6 flex justify-end">
-        <button className="font-mono text-sm">EDIT BANK INFO</button>
+        <button onClick={() => router.replace('/user/AddBankAccount')} className="font-mono text-sm">EDIT BANK INFO</button>
       </div>
      </> : <>
         <div className="w-full flex py-8 justify-center">
@@ -79,18 +101,33 @@ export default function User({ data }: any) {
         </div>
      </>}
 
-     { data?.user.bankingInfo !== null ? <>
+     {/**should initialize by sending sol to the vault account from the backend */}
+     {isActivated ?
+      <>
+      { data?.user.bankingInfo !== null ? <>
       {qrRef && 
                     <div className='py-4 flex justify-center'>
                         <div className="rounded-[2rem]" ref={qrRef} />
                     </div>
                 }
      </> : null}
+      </> :
+      <>
+      <div className="flex justify-center pt-4">
+        <h3 className="text-[#09342a]">Your solana wallet is not initialized so people can&apos;t send money to it. But don&apos;t worry you we got you</h3>
+      </div>
+      <div className="w-full flex py-8 justify-center">
+      <button className="bg-[#09342a] text-white px-3 py-2 font-mono">INITIALIZE WALLET</button>
+      </div>
+      </>
+    }
+     
+     
       
      
 
       <div className="flex justify-center mt-8">
-        <button className="text-[#09342a] text-xl font-main ">Didnt receive a code? Resend.</button>
+        <button className="text-[#09342a] text-xl font-main ">Log Out</button>
       </div>
     </div>
     <div className="flex items-center gap-3 mt-5"> <span className="text-2xl text-[#FFF3D5]">Olumide Funitures received</span> <img src="../ngn.svg" className="h-[30px] w-[30px]" /> <span className="text-2xl text-[#FFF3D5]">₦2000 from USDC</span></div>
@@ -104,14 +141,11 @@ export async function getServerSideProps(context: any) {
   const { req, res } = context;
   const sessionCookie = req.cookies['myCookie'];
   const allCookies = req.headers.cookie
-  console.log(await decrypt(sessionCookie))
-  const dd = await decrypt(sessionCookie)
-  console.log(dd.user.kycInfo[0].fullName)
 
 
   if (!sessionCookie) {
     // Redirect the user to the login page or any other page
-    res.writeHead(302, { Location: '/Signup' });
+    res.writeHead(302, { Location: '/' });
     res.end();
     return { props: {} }; // Return empty props since the page will not be rendered
   }

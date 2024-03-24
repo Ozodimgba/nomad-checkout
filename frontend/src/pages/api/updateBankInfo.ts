@@ -4,6 +4,7 @@ import * as OTPAuth from "otpauth";
 import axios from 'axios';
 import { supabase } from "@/utils/supabase";
 import { DatabaseOptions } from "./registerUser";
+import { encrypt } from "@/lib";
 
 type Data = {
   success: boolean;
@@ -26,6 +27,15 @@ export default async function handler(
   .update({bankingInfo: bankInfo})
   .eq("email", email)
   .select('*')
+
+  if(!data) return;
+    const user: DatabaseOptions = data[0] as unknown as DatabaseOptions
+  
+  const expires = new Date(Date.now() + 30 * 60 * 1000);
+  const session = await encrypt({ user, expires });
+
+  // // Respond with a success message or any other data
+  res.setHeader('Set-Cookie', `myCookie=${session}; Expires=${expires}; HttpOnly; Secure; Path=/`); 
 
  if(!error) {
   res.status(200).json({success: true})

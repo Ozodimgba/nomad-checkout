@@ -49,7 +49,6 @@ export async function createTransfer(
     if (!senderInfo) throw new CreateTransferError('sender not found');
 
     const recipientInfo = await connection.getAccountInfo(recipient);
-    console.log(recipientInfo)
     if (!recipientInfo) throw new CreateTransferError('recipient not found');
 
     // A native SOL or SPL token transfer instruction

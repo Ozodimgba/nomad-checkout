@@ -7,6 +7,7 @@ import {
 } from '@supabase/supabase-js';
 import { ConfigService } from '@nestjs/config';
 import * as multisig from '@sqds/multisig';
+//import { transferSPL } from './helpers/transferScalex';
 import * as bs58 from 'bs58';
 import { HttpService } from '@nestjs/axios';
 const { Permissions } = multisig.types;
@@ -18,10 +19,19 @@ interface BankingInfo {
   bank_name: string;
 }
 
-interface AccountInfo {
+type KYCInfo = {
+  fullName: string;
+  phoneNumber: string;
+  dob: string; // Consider using a more specific type like Date here
+};
+
+type AccountInfo = {
   account_number: string;
   bank_code: string;
-}
+  vault: string;
+  email: string;
+  kycInfo: KYCInfo[];
+};
 
 export interface MerchantData {
   email: string;
@@ -126,7 +136,7 @@ export class AppService {
   async getNextUserId(): Promise<number | PostgrestError> {
     const db = this.connect();
 
-    const { data, error } = await db.from('nomad_merchants').select('*');
+    const { data, error } = await db.from('users').select('*');
 
     if (data) {
       return data.length + 1;
@@ -148,7 +158,6 @@ export class AppService {
 
   async generateNewVault(): Promise<string> {
     const id = await this.getNextUserId();
-
     const nomadVault = this.getVault(id as unknown as number).toBase58();
     return nomadVault;
   }
@@ -166,7 +175,7 @@ export class AppService {
 
     if (data) {
       const { error } = await db
-        .from('nomad_merchants')
+        .from('users')
         .insert({
           email: data.email,
           bankInfo: data.bankInfo,
@@ -185,75 +194,107 @@ export class AppService {
     //return this.getVault(id);
   }
 
-  retrieve(): any {}
+  async retryUntilSuccess(url, postData, bearerToken, maxRetries = 5) {
+    let retries = 0;
 
-  async makePostRequest(
-    accountInfo: AccountInfo,
-    amount: number,
-  ): Promise<any> {
+    while (retries < maxRetries) {
+      try {
+        const response = await this.httpService
+          .post(url, postData, {
+            headers: {
+              Authorization: `Bearer ${bearerToken}`,
+            },
+          })
+          .toPromise();
+
+        if (response.status === 201) {
+          return response.data; // Return the data if status is 201
+        } else {
+          console.log(
+            `Retry attempt ${retries + 1}: Status ${response.status}`,
+          );
+        }
+      } catch (error) {
+        console.error(`Retry attempt ${retries + 1}:`, error);
+      }
+
+      // Increment retries and wait before the next attempt
+      retries++;
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 1 second (adjust as needed)
+    }
+
+    throw new Error(`Max retries (${maxRetries}) exceeded`);
+  }
+
+  async buildScalexTx(accountInfo: AccountInfo, amount: number): Promise<any> {
     const url = 'https://ramp.scalex.africa/business/tx/offramp';
     const bearerToken =
       'test.sc.ey65f1a83706b7b6cfe0fb766965f1a83706b7b6cfe0fb766a65f1a83706b7b6cfe0fb766b';
 
-    console.log(accountInfo, amount);
+    // console.log(accountInfo.account_number, amount);
+    const { account_number, bank_code, email, kycInfo } = accountInfo;
+
     const postData = {
       amount: amount,
       coin_type: 'USDC_SOLANA',
-      recipient_bank_info: accountInfo,
+      recipient_bank_info: {
+        account_number,
+        bank_code,
+      },
       recipient: {
-        name: 'Scalex Africa',
+        name: kycInfo[0].fullName,
         country: 'NG',
         address: 'cooplag',
-        dob: '01/01/2000',
-        email: 'joel@scalex.africa',
+        dob: kycInfo[0].dob,
+        email: email,
         idNumber: '273409234234',
         idType: 'nin',
-        phone: '+2347018181202',
+        phone: kycInfo[0].phoneNumber,
       },
     };
 
-    try {
-      const response = await this.httpService
-        .post(url, postData, {
-          headers: {
-            Authorization: `Bearer ${bearerToken}`,
-          },
-        })
-        .toPromise()
-        .then();
+    // console.log(postData);
 
-      console.log(response.data);
-      return response.data;
+    try {
+      await this.retryUntilSuccess(url, postData, bearerToken, 3).then(
+        (res) => {
+          console.log(res.data.data.wallet_to_fund.address);
+        },
+        // do the swap here
+      );
     } catch (error) {
-      console.error('Error:', error.data);
-      throw error;
+      console.error('Failed after max retries:', error);
     }
   }
 
-  async transferToscalex(receiver: string, amount: number): Promise<any[]> {
+  async transferToscalex(receiver: string, amount: number): Promise<any> {
     // receives webhooks from helius;
-    console.log(amount);
     // searches receiver Pubkey reference to a bank account INFO
     const db = this.connect();
 
     const { data: findUserDetails, error } = await db
-      .from('nomad_merchants')
+      .from('users')
       .select('*')
-      .eq('vaultPda', receiver);
+      .eq('nomadVault', receiver);
 
-    console.log(findUserDetails[0].bankInfo, error);
+    //console.log(findUserDetails[0]);
 
     if (findUserDetails !== null) {
       const data = {
-        account_number: findUserDetails[0].bankInfo.account_number,
-        bank_code: findUserDetails[0].bankInfo.bank_code,
+        account_number: findUserDetails[0].bankingInfo.account_number,
+        bank_code: findUserDetails[0].bankingInfo.bank_code,
+        vault: findUserDetails[0].nomadVault,
+        email: findUserDetails[0].email,
+        kycInfo: findUserDetails[0].kycInfo,
       };
       if (data) {
-        await this.makePostRequest(data, 5);
+        console.log('set to scalex');
+        const scalexTx = await this.buildScalexTx(data, amount);
+        return scalexTx;
       }
+    } else if (error) {
+      return error;
     }
-
-    return findUserDetails;
     // posts an off-ramp request to scalex
     // transfers from the users vault to scalex reference account
     // returns done

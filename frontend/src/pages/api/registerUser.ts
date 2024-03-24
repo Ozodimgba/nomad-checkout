@@ -2,7 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import * as OTPAuth from "otpauth";
 import { supabase } from "@/utils/supabase";
-import { EmailTemplate } from '../../components/emails/otp';
+import { EmailTemplate } from '../../components/emails/notif';
 import * as speakeasy from 'speakeasy';
 import { Resend } from 'resend';
 import axios from "axios";
@@ -54,7 +54,7 @@ export default async function handler(
       secret: secret.base32, // or 'OTPAuth.Secret.fromBase32("NB2W45DFOIZA")'
     });
   
-    const vault = axios.get('https://3001-ozodimgba-nomadcheckout-ofv3uqpm6fa.ws-eu110.gitpod.io/generateNewVault')
+    const vault = axios.get('https://nomad-backend-production.up.railway.app/generateNewVault')
   
     const InsertOptions: DatabaseOptions = {
       email: email,
@@ -83,18 +83,22 @@ export default async function handler(
   //   let delta = totp.validate({ token: token, window: 1 });
   
   //   const validate = totp.validate({ token })
+  if(!error) {
   try {
     const { data, error } = await resend.emails.send({
-        from: 'Verify your Nomad Account <info@usenomad.xyz>',
+        from: 'Happy registration at Nomad Account <info@usenomad.xyz>',
         to: [email],
-        subject: 'First Step',
+        subject: 'First Steps',
         react: EmailTemplate({ name: firstName[0], otpCode: token }),
-        text: 'Verify your Nomad Account', // Add this line
+        text: 'First time on Nomad', // Add this line
       });
     res.status(200).json({ success: true});
   } catch(err) {
    res.status(500).json({ success: false})
   }
+ } else {
+  res.status(500).json({ success: false})
+ }
 
   } catch(err) {
     console.log(err)

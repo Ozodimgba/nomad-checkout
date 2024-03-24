@@ -48,7 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
   
     
-    const expires = new Date(Date.now() + 500 * 1000);
+    const expires = new Date(Date.now() + 30 * 60 * 1000);
     const session = await encrypt({ user, expires });
 
     // // Respond with a success message or any other data

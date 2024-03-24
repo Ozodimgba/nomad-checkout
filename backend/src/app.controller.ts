@@ -30,6 +30,14 @@ export class AppController {
     return this.appService.register(data);
   }
 
+  @Get('getUser')
+  getUser(): any {
+    return this.appService.transferToscalex(
+      'HoMSres2Bb8EojvfmXTSdsSWwYHHvG39qqGWEWA34Uzj',
+      5,
+    );
+  }
+
   @Post('ms')
   create(): any {
     return this.appService.createMultisig();
@@ -37,6 +45,9 @@ export class AppController {
 
   @Post('off-ramp')
   offRamp(): any {}
+
+  @Get('initialize')
+  initializeAddress(): any {}
 
   @Get('generateNewVault')
   generateNewVault(): any {
