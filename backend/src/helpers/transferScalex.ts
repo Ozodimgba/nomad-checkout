@@ -9,6 +9,7 @@ import {
 } from '@solana/web3.js';
 import * as splToken from '@solana/spl-token';
 import * as multisig from '@sqds/multisig';
+import * as bs58 from 'bs58';
 
 export async function transferSPL(
   RPC: Cluster,
@@ -171,25 +172,25 @@ export async function transferSPL(
   }
 }
 
-// const wallet = bs58.decode(
-//   '43xQCVeSAFPtDjEwyTQCirhDfybneT9p4A8HBzX3VBUonkqwi9VPUkgiS1ViZLDbhYBRRrmS6byt1EtoBMcnBESu',
-// );
-// const authority = Keypair.fromSecretKey(wallet);
-// const destinationAccount = new PublicKey(
-//   '9Xkt75L6YLmfVyNXQyBzM2Cd8PUW6pmUZSk3oyG57cjJ',
-// );
-// const mintAddress = new PublicKey(
-//   '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
-// );
-// const multisigPubkey = new PublicKey(
-//   'H6byZJsYLYp4wX2ctr2hhfkxNZcSJUT2SZK27DULp31X',
-// );
+const wallet = bs58.decode(
+  '43xQCVeSAFPtDjEwyTQCirhDfybneT9p4A8HBzX3VBUonkqwi9VPUkgiS1ViZLDbhYBRRrmS6byt1EtoBMcnBESu',
+);
+const authority = Keypair.fromSecretKey(wallet);
+const destinationAccount = new PublicKey(
+  '9Xkt75L6YLmfVyNXQyBzM2Cd8PUW6pmUZSk3oyG57cjJ',
+);
+const mintAddress = new PublicKey(
+  '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
+);
+const multisigPubkey = new PublicKey(
+  '8z3LjavuUzoJoSb1NyKwJWCupFcpKgjBhHk6wgCjSRdg',
+);
 
-// transferSPL(
-//   'devnet',
-//   authority,
-//   destinationAccount,
-//   multisigPubkey,
-//   mintAddress,
-//   0.9,
-// );
+transferSPL(
+  'devnet',
+  authority,
+  destinationAccount,
+  multisigPubkey,
+  mintAddress,
+  0.9,
+);
