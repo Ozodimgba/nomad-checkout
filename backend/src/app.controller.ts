@@ -33,7 +33,7 @@ export class AppController {
   @Get('getUser')
   getUser(): any {
     return this.appService.transferToscalex(
-      'HoMSres2Bb8EojvfmXTSdsSWwYHHvG39qqGWEWA34Uzj',
+      'BGKGV5TyEkj5fA8ep2eikBkH8Yp3jk2dSysRLG4ibKPg',
       5,
     );
   }

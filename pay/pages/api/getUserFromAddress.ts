@@ -16,7 +16,7 @@ export default async function handler(
   const { data, error } = await supabase.from('users').select('*').eq('nomadVault', address);
 
   if(!data) return;
-  const user = data[0].bankingInfo.account_name
+  const user = data[0]?.bankingInfo.account_name
 
   res.status(200).json({ name: user });
 }

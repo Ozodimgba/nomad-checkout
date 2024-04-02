@@ -233,7 +233,6 @@ export class AppService {
 
     // console.log(accountInfo.account_number, amount);
     const { account_number, bank_code, email, kycInfo } = accountInfo;
-
     const postData = {
       amount: amount,
       coin_type: 'USDC_SOLANA',

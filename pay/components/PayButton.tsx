@@ -47,7 +47,7 @@ export default function PayButton({ recipientKey, amount, name }: InputProps) {
       onClick={transferUSDC}
       disabled={!publicKey}
     >
-      Ok I agree to pay {amount} USDC to {name}
+      Ok I agree to pay {amount} USDC to {!name ? 'Unknown Receipient': <span className="font-bold">{name}</span>}
     </button>
   );
 }
